@@ -1,3 +1,5 @@
-These are input files to run TREES. To run the model, e.g., 
+These are input files to run TREES. The folder contains inputs to run 13 NAM lines of maize for the growing season of 2013 in Greeley, Colorado. This set was run by allowing leaf refilling to continue until reproductive state R1. 
+
+To run the model, e.g., 
 
 trees3 < inB73
