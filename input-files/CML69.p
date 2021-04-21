@@ -2,9 +2,9 @@
 40.447 41.367 	latitude
 -104.647	longitude
 3.0	z_ref, m 
-0.06 2.0 20.0	lai, single sided
+0.045 2.0 20.0	lai, single sided
 2.0	canopy_height, m
-4.5	lai_at_full_canopy_height
+4.5 4.5	lai_at_full_canopy_height
 1.2	l_angle, spherical, may sample
 0.97	canopy emissivity
 0.5 0.01	fPAR_beam, fraction of direct beam solar radiation that is PAR
@@ -32,7 +32,7 @@
 3.6    act25, (umol/mgRubisco/min) Rubisco activity
 2.4 2.0 3.0    q10act, (DIM) Q_10 for Rubisco activity (default was 2.4)
 55.06 46.0 60.0 Vcmax25, maximum Rubisco activity at 25 C, umol m-2 s-1
-449.2 58.0 100.0 Vpmax25, maximum PEP carbolylase activity at 25 C, umol m-2
+68.4 449.2 100.0 Vpmax25, maximum PEP carbolylase activity at 25 C, umol m-2
 175.0 400.0 400.0 Jmax25, maximum electron transport rate at 25 C, umol m-2 s-1
 38.6 38.6 38.6 gammaStar25, compensation point at 25 C, umol
 80.0 80.0 80.0 Kp25, Michaelis constant of PEP carboxylase for CO2 at 25 C, ubar
@@ -53,11 +53,11 @@
 0.09 0.09 0.09 alphaGmax, fraction of glycolate carbon diverted to glycine during photorespiration
 0.38 0.38 0.38 alphaSmax, fraction of glycolate carbon diverted to serine during photorespiration
 1.5 1.5 1.5 Nmax, maximum rate of de novo nitrogen supply to the chloroplast, umol N m-2 s-1
-0.303 0.268 0.258   	Gsref0, reference canopy stomatal conductance (mol m-2 s-1)
-0.54 0.487439 0.61  	m (proportion of Gsref0)
+0.27 0.303 0.258   	Gsref0, reference canopy stomatal conductance (mol m-2 s-1)
+0.48 0.487439 0.61  	m (proportion of Gsref0)
 1 1 0  isAmphistomatous, (1 or 0) has stomata on both sides of leaf
 -0.05   Md, used for diagnosing hydraulic model - if pressure goes higher than this value you get an error
--1.4 -1.6 midday_at_sat_kl
+-1.66 -1.4 -1.6 midday_at_sat_kl
 4.22 2.68 3.0 e_at_saturated_kl
 3.0 rhizosphere_width_(mm)
 4 soilshells
@@ -82,10 +82,10 @@
 2.140 1.5 ax_Root-c_value_(weibull)
 1.625 1.383 1.5 lat_Root-b_value_(weibull)
 2.140 1.48 1.5 lat_Root-c_value_(weibull)
-20.0 initial_conductivity(root)
-0.02 decrement(root)- default 0.001
-30.0 initial_conductivity(shoot)
-0.03 decrement(shoot)
+10.0 initial_conductivity(root)
+0.01 decrement(root)- default 0.001
+15.0 initial_conductivity(shoot)
+0.01 decrement(shoot)
 0.22 0.05 0.48 theta_opt
 30.0 25.0 45.0 optimal_soil_T
 1.0   growth_resp_proportion
@@ -102,18 +102,23 @@
 0.75 0.3733 0.6 kes, m3 d-1 gC-1 (for exudates)
 0.000065 0.00001625 0.000065 kl, m3 d-1 gC-1
 0.0000025 0.0000025 kh, m3 d-1 gC-1
+10.0 fr_minCN, minimum fine root C:N ratio
+40.0 fr_maxCN, maximum fine root C:N ratio
+20.0 leaf_minCN, minimum leaf C:N ratio
+80.0 leaf_maxCN, maximum leaf C:N ratio
 79200.0 214000.0 19782.4 Cbelowground, kg ha-1
 0.00015 0.00001 0.0152229  Clitter_frac, dim
-0.0012 0.0009 0.021 Croot_frac, dim
+0.0013 0.0009 0.021 Croot_frac, dim
 1.00 13710.0 29460.0 Cstem, kg ha-1
 1.0 2.0 Csapwood, kg ha-1
-0.0012 0.0009 0.1 Croot_coarse_frac, dim
+0.0013 0.0009 0.1 Croot_coarse_frac, dim
+0.0000001 interception_per_leafArea, m m2 m-2
 0.005 0.000001 0.05 litter_capacity, m
 0.17 0.48 theta_deep0, initial
 0.19 0.48 theta_mid0, initial
 0.22 0.48 theta_shallow0, initial
 0.0 0.001 0.05 litter_store, initial
-55.0 60.0 28.6 SLA, m2 kgC-1 leaf
+50.0 60.0 28.6 SLA, m2 kgC-1 leaf
 350.0 550.0 SRL1, m gC-1 specific root length at root diameter of 250 um
 0.000125 0.000125 minRootDiam, m diameter of finest root
 0.020 0.064 maxRootDiam, m diameter of thickest root
@@ -129,20 +134,25 @@
 1.0 leafLife Span
 10 max_iteration(the_max_number_of_iterations_to_achieve_convergence_Delta<THR
 200.0 1.0 10.0 microbiomeScalar, unitless, multiplier for the initial nutrient status of microbiome
+0.0 0.00005 microbialrainrate
+0.0 raininAmmonium
+0.0 raininNitrate
+0.0 raininMineralN
+0.0 raininLabileC
 0.0 snowpack_water_equivalent, m
 0.0 snowpack_E_deficit_max, deg C
 0.0015 melt_Rcoef, m degC-1 30-min-1
 1 0 1 useHydraulics
 0 0 1 useInputStress
-1 0 1 useRefilling
-1 0 1 forceRefilling
+1 0 1 useInputWaterTable
+186 213  dayToStopMaizeRefilling, used when both usePhenology and useLeafModule are set to zero (false)
 0 useLeafModule
 11.211 leafAreaMax // K
 0.939134 initialLeafSize //A_pot_in
 0.000495803 leafArea_Rate //r
 11024.02 dur_LeafExpansion//d_exp
-400.0 SLA_max //SLA_max
-71.1034 SLA_min //SLA_min
+70.0 SLA_max //SLA_max
+35.0 71.1034 SLA_min //SLA_min
 60.0 leaf_insertAngle // leaf insertion angle
 2.5 leaf_len_to_width // leaf length to width ratio
 0.90 proportion_CD //a
