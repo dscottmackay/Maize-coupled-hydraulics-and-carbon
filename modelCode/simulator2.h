@@ -16,7 +16,7 @@
 #include <vector>
 #include <fstream>
 #include <math.h>
-#include <random>
+//#include <random>
 #include <algorithm>
 #include "parameter.h"
 #include "state_store.h"
@@ -185,6 +185,15 @@ struct trees_params {
 	double leafLifeSpan;
 	int max_iterations;
 	double microbiomeScalar;
+//Microbioal rain in rate MCH 05082020
+	double microbialrainrate;
+//..
+//MCH 23092020
+        double raininAmmonium;
+        double raininNitrate;
+        double raininMineralN;
+        double raininLabileC;
+//..
 	double theta_opt;
 	double optimal_soil_T;
 	double growth_resp_proportion;
@@ -201,6 +210,10 @@ struct trees_params {
 	double kes;
 	double kl; //for rhizosphere BGC model
 	double kh; //for rhizosphere BGC model
+	double fr_minCN; //minimum fine root C:N ratio
+	double fr_maxCN; //maximum fine root C:N ratio
+	double leaf_minCN; //minimum leaf C:N ratio
+	double leaf_maxCN; //maximum leaf C:N ratio
 	double Cbelowground;
 	double Clitter_frac;
 	double Croot_frac;
@@ -211,6 +224,7 @@ struct trees_params {
 	double Cstem;
 	double Csapwood;
 	double Croot_coarse_frac;
+	double interception_per_leafArea;
 	double litter_capacity;
 	double litter_capacity_init;
 	double theta_deep0;
@@ -218,6 +232,7 @@ struct trees_params {
 	double theta_shallow0;
 	double litter_store0;
 	double SLA;
+	double SLA_instant;
 	double SRL1;
 	double minRootDiam;
 	double maxRootDiam;
@@ -239,7 +254,9 @@ struct trees_params {
 	bool useHydraulics;
 	bool useInputStress;
 	bool useRefilling;
+	bool useInputWaterTable;
 	bool forceRefilling;
+	int dayToStopMaizeRefilling;
 	bool updatedHydraulics;
 	bool allowLeafRefilling;
 //NEW leaf module
@@ -268,6 +285,7 @@ struct trees_params {
         double Nbeta;
         double ralpha;
         double rbeta;
+
 };
 
 //TREES - proposed new biogeochemical cycling routines
@@ -426,6 +444,12 @@ class BiogeochemicalCycles
 		double getRootNSC(int j,
 				  int k);
 
+	//methods to query fine root NSC
+		double getFineRootNSC();
+		double getFineRootNSC(int j);
+		double getFineRootNSC(int j,
+				  int k);
+
 	//method to assign a value to leaf NSC
 		void putLeafNSC(double nsc);
 
@@ -557,6 +581,13 @@ class BiogeochemicalCycles
                                            double SLA);
 
 	//method to update lef carbon pools
+		void updateLeafCarbonNitrogenPools(int k,
+						   trees_params& treesParams,
+					   	   double delta_lai,
+						   double RL,
+						   double N_neg_fract,
+                                                   double& N_neg_demand,
+                                                   double& N_pos_demand);
 		void updateLeafCarbonNitrogenPools(trees_params& treesParams,
 					   	   double delta_lai,
 						   double RL,
@@ -938,6 +969,11 @@ class BiogeochemicalCycles
     //methods to calculate plant LAI
     		double calcLAI(int Lf_idx, 
 			       trees_params treesParams, double* Karray);
+    //methods to calculate plant maximum projected ground area
+    		double calc_projGndArea(trees_params treesParams, double* Karray);
+    //methods to calculate plant total leaf area
+    		double calc_projArea(int Lf_idx, 
+			       trees_params treesParams);
     //methods for computing plant-level state variables from leaf-level state variables
     		double getSumLeafBiomassCarbon(int Lf_idx, 
 					       double ProjGrndArea_instant);

@@ -404,8 +404,8 @@ double calc_GSI(double photoPeriod,
 	}
 */
 
-	lwpmin = -2.875;
-	lwpmax = -0.61;
+	lwpmin = -6.0;
+	lwpmax = -1.0;
 	if (gsi_lwp <= lwpmin)
 	{
 		lwp_indicator = 0.0;
@@ -1613,6 +1613,7 @@ double compute_effective_precipitation(State_Store& state,
 {
 	double canopy_store, interception_capacity, interception, eff_precip, snowpack, snowmelt, snowpack_E_deficit;
 
+	canopy_store = state.get_val_at(CANOPY);
 	interception_capacity = canopy_store_max - canopy_store;
         if(treesParams.useLeafModule == true){
             interception_capacity = 0.0;
@@ -1984,8 +1985,8 @@ double compute_canopy_evaporation(State_Store& state,
         {
                 if (canopy_wetness > 1.0E-6)
                 {
-                        can_evap_sun = do_pm(Rnet_sun, T_sun, D*(1.0-canopy_wetness), p_air, gHr, gva);
-                        can_evap_shd = do_pm(Rnet_shd, T_shd, D*(1.0-canopy_wetness), p_air, gHr, gva);
+                        can_evap_sun = do_pm(Rnet_sun, T_sun, D, p_air, gHr, gva);
+                        can_evap_shd = do_pm(Rnet_shd, T_shd, D, p_air, gHr, gva);
                         canopy_evaporation = canopy_wetness * canopy_cover * (can_evap_sun + can_evap_shd);
                         if (canopy_evaporation > canopy_store)
                         {

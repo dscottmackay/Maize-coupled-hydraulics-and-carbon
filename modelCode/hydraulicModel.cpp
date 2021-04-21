@@ -2246,7 +2246,11 @@ void HydraulicModel::setup( 	bool reset, outputStruct &ecrit_k_psi, outputStruct
       	ptarg = midday_at_sat_kl;
 
       	e = e_at_saturated_kl;
-	e *= max(0.05,treesParams.lai);
+//This modification allows for reasonable scaling of maximum hydraulic conductance
+//  for LAI values from less than one to greater than one
+//  It slightly exaggerates Kmax for very tiny plants with low LAI
+//  It scales Kmax using whole plant saturation transpiration
+	e *= max(sqrt(treesParams.lai+0.00000001),treesParams.lai);
 	//e *= treesParams.lai;
 
     	rr = 0.0001;                           //root radius in m
@@ -2574,10 +2578,10 @@ void HydraulicModel::ksolve( double r[][ULAT], double pe[][ULAT], double b[][ULA
 //added by DR 8/3/07
     	//rlateral = initial_conductivity_root/latot;
     	rlateral = initial_conductivity_root/min(1.0, latot);
-    	rLat_base = decrement_root;
+    	rLat_base = decrement_root/min(1.0, latot);
     	//slateral = initial_conductivity_shoot/latot;
     	slateral = initial_conductivity_shoot/min(1.0, latot);
-    	sLat_base = decrement_shoot;
+    	sLat_base = decrement_shoot/min(1.0, latot);
 
     	for ( i=1; i <= ShootModules; i++) 
 	{

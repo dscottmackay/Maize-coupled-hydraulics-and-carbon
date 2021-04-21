@@ -248,7 +248,7 @@ int main()
 		effout << "output file: " << cfile << endl;
 
         	cout << endl;
-        	cout << ">>> TREES, v. 3.1.1, stochastic parameter mode <<< \n\n";
+        	cout << ">>> TREES, v. 3.1.4, stochastic parameter mode <<< \n\n";
         	cout << endl;
 
 		cout << "Running MCMC - " << total_sims << " iterations\n";
@@ -465,7 +465,7 @@ int main()
                 {
                         fluxout << "RhizFlux" << i << "\t";
                 }
-		fluxout << "Gs\tLAI\tliveLAI\tRmaint\t";
+		fluxout << "Gs\tLAI\tSLA\tliveLAI\tRmaint\t";
 		fluxout << "Rgrowth\treproduction\tleafNSC\tstemNSC\trootNSC\tchloroStarch\tchloroSugar\twaterStress\tlitterH2O\t";
 		for (i = 0; i < treesParams.rmodules; i++)
                 {

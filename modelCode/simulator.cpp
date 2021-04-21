@@ -200,6 +200,12 @@ void simulator(Data_Store& in_data,
 	treesParams.kl = current_params[i].get_value(); i++;  //
 	treesParams.kh = current_params[i].get_value(); i++;  //
 
+	treesParams.fr_minCN = current_params[i].get_value(); i++;  //
+	treesParams.fr_maxCN = current_params[i].get_value(); i++;  //
+	treesParams.leaf_minCN = current_params[i].get_value(); i++;  //
+	treesParams.leaf_maxCN = current_params[i].get_value(); i++;  //
+
+
 	treesParams.Cbelowground = current_params[i].get_value(); i++;  //
 	treesParams.Clitter_frac = current_params[i].get_value(); i++;  //
 	treesParams.Croot_frac = current_params[i].get_value(); i++;  //
@@ -210,6 +216,7 @@ void simulator(Data_Store& in_data,
 	treesParams.Croot_coarse_frac = current_params[i].get_value(); i++;//
 	treesParams.Croot_coarse = treesParams.Croot_coarse_frac * treesParams.Cbelowground;
 	treesParams.Csoil = (1.0-treesParams.Clitter_frac - treesParams.Croot_frac - treesParams.Croot_coarse_frac) * treesParams.Cbelowground;
+	treesParams.interception_per_leafArea = current_params[i].get_value(); i++;//
 	treesParams.litter_capacity = current_params[i].get_value(); i++;//
 	treesParams.litter_capacity_init = treesParams.litter_capacity;
 	treesParams.theta_deep0 = current_params[i].get_value(); i++;//
@@ -217,6 +224,7 @@ void simulator(Data_Store& in_data,
 	treesParams.theta_shallow0 = current_params[i].get_value(); i++;//
 	treesParams.litter_store0 = current_params[i].get_value(); i++;//
 	treesParams.SLA = current_params[i].get_value(); i++;  //
+	treesParams.SLA_instant = treesParams.SLA;
 	treesParams.SRL1 = current_params[i].get_value(); i++;  //
 	treesParams.minRootDiam = current_params[i].get_value(); i++;  //
 	treesParams.maxRootDiam = current_params[i].get_value(); i++;  //
@@ -242,6 +250,13 @@ void simulator(Data_Store& in_data,
 	treesParams.max_iterations = (int) current_params[i].get_value(); i++;
 //Conductance to use for Darcy's Law, 1=WholePlant,2=AxialComponents, 3=Shoot,4=AxialRoot, 5=LaterialRoot
 	treesParams.microbiomeScalar = current_params[i].get_value(); i++;
+// MCH 07082020
+	treesParams.microbialrainrate = current_params[i].get_value(); i++; //
+//MCH 23092020
+        treesParams.raininAmmonium = current_params[i].get_value(); i++; //
+        treesParams.raininNitrate = current_params[i].get_value(); i++; //
+        treesParams.raininMineralN = current_params[i].get_value(); i++; //
+        treesParams.raininLabileC = current_params[i].get_value(); i++; //
 //Parameters for snowpack accumulation and melt
 	treesParams.snowpack_water_equivalent = current_params[i].get_value(); i++; //
 	treesParams.snowpack_E_deficit_max = current_params[i].get_value(); i++; //
@@ -249,8 +264,8 @@ void simulator(Data_Store& in_data,
 //Run with full hydraulics or not (1 = yes, 0 = no)
 	treesParams.useHydraulics = (bool) current_params[i].get_value(); i++; //
 	treesParams.useInputStress = (bool) current_params[i].get_value(); i++; //
-	treesParams.useRefilling = (bool) current_params[i].get_value(); i++; //
-	treesParams.forceRefilling = (bool) current_params[i].get_value(); i++; //
+	treesParams.useInputWaterTable = (bool) current_params[i].get_value(); i++; //
+	treesParams.dayToStopMaizeRefilling = current_params[i].get_value(); i++; //
 //Leaf growth module parameters
         treesParams.useLeafModule = (bool) current_params[i].get_value(); i++; //
         treesParams.leafAreaMax = current_params[i].get_value(); i++; //
@@ -280,7 +295,7 @@ void simulator(Data_Store& in_data,
 //MCMC Parameters
 	sd_err1 = current_params[i].get_value(); i++; //
 	sd_err2 = current_params[i].get_value(); i++; //
-	sd_err1_wt = current_params[i].get_value();
+	sd_err1_wt = current_params[i].get_value(); 
 
 	treesParams.delta = m*treesParams.Gsref0; // sensitivity of stomata to VPD, mol m-2 s-1
 
@@ -805,6 +820,11 @@ void simulator(Data_Store& in_data,
         treesParams.kl = current_params[i].get_value(); i++;  //
         treesParams.kh = current_params[i].get_value(); i++;  //
 
+	treesParams.fr_minCN = current_params[i].get_value(); i++;  //
+        treesParams.fr_maxCN = current_params[i].get_value(); i++;  //
+        treesParams.leaf_minCN = current_params[i].get_value(); i++;  //
+        treesParams.leaf_maxCN = current_params[i].get_value(); i++;  //
+
         treesParams.Cbelowground = current_params[i].get_value(); i++;  //
         treesParams.Clitter_frac = current_params[i].get_value(); i++;  //
         treesParams.Croot_frac = current_params[i].get_value(); i++;  //
@@ -815,6 +835,7 @@ void simulator(Data_Store& in_data,
         treesParams.Croot_coarse_frac = current_params[i].get_value(); i++;//
         treesParams.Croot_coarse = treesParams.Croot_coarse_frac * treesParams.Cbelowground;
         treesParams.Csoil = (1.0-treesParams.Clitter_frac - treesParams.Croot_frac - treesParams.Croot_coarse_frac) * treesParams.Cbelowground;
+	treesParams.interception_per_leafArea = current_params[i].get_value(); i++;//
         treesParams.litter_capacity = current_params[i].get_value(); i++;//
 	treesParams.litter_capacity_init = treesParams.litter_capacity;
         treesParams.theta_deep0 = current_params[i].get_value(); i++;//
@@ -822,6 +843,7 @@ void simulator(Data_Store& in_data,
         treesParams.theta_shallow0 = current_params[i].get_value(); i++;//
         treesParams.litter_store0 = current_params[i].get_value(); i++;//
         treesParams.SLA = current_params[i].get_value(); i++;  //
+	treesParams.SLA_instant = treesParams.SLA;
         treesParams.SRL1 = current_params[i].get_value(); i++;  //
         treesParams.minRootDiam = current_params[i].get_value(); i++;  //
         treesParams.maxRootDiam = current_params[i].get_value(); i++;  //
@@ -848,6 +870,13 @@ void simulator(Data_Store& in_data,
         treesParams.max_iterations = (int) current_params[i].get_value(); i++;
 //Conductance to use for Darcy's Law, 1=WholePlant,2=AxialComponents, 3=Shoot,4=AxialRoot, 5=LaterialRoot
         treesParams.microbiomeScalar = current_params[i].get_value(); i++;
+// MCH 07082020
+	treesParams.microbialrainrate = current_params[i].get_value(); i++; //
+//MCH 23092020
+        treesParams.raininAmmonium = current_params[i].get_value(); i++; //
+        treesParams.raininNitrate = current_params[i].get_value(); i++; //
+        treesParams.raininMineralN = current_params[i].get_value(); i++; //
+        treesParams.raininLabileC = current_params[i].get_value(); i++; //
 //Parameters for snowpack accumulation and melt
         treesParams.snowpack_water_equivalent = current_params[i].get_value(); i++; //
         treesParams.snowpack_E_deficit_max = current_params[i].get_value(); i++; //
@@ -855,8 +884,8 @@ void simulator(Data_Store& in_data,
 //Run with full hydraulics or not (1 = yes, 0 = no)
         treesParams.useHydraulics = (bool) current_params[i].get_value(); i++; //
         treesParams.useInputStress = (bool) current_params[i].get_value(); i++; //
-        treesParams.useRefilling = (bool) current_params[i].get_value(); i++; //
-        treesParams.forceRefilling = (bool) current_params[i].get_value(); i++; //
+        treesParams.useInputWaterTable = (bool) current_params[i].get_value(); i++; //
+        treesParams.dayToStopMaizeRefilling = current_params[i].get_value(); i++; //
 	treesParams.allowLeafRefilling = true;
 //Leaf growth module parameters
         treesParams.useLeafModule = (bool) current_params[i].get_value(); i++; //
@@ -906,11 +935,11 @@ void simulator(Data_Store& in_data,
 	cout << endl;
 	if (treesParams.useHydraulics == true)
 	{
-		cout << ">>> TREES, v. 3.1.1, deterministic mode with plant water balance <<< \n\n";
+		cout << ">>> TREES, v. 3.1.4, deterministic mode with plant water balance <<< \n\n";
 	}
 	else
 	{
-		cout << ">>> TREES, v. 3.1.1, deterministic mode without plant water balance <<< \n\n";
+		cout << ">>> TREES, v. 3.1.4, deterministic mode without plant water balance <<< \n\n";
 	}
 	cout << endl;
 //Calculate field capacity
@@ -1307,6 +1336,7 @@ cout << "rootArea = " << rootArea << endl;
 //This next set of code is used to recall the plant water balance model setup
 //  allowing for adjustments in root volume, and xylem refilling
 			treesParams.updatedHydraulics = false;
+			treesParams.forceRefilling = false;
 			if (treesParams.useHydraulics == true)
 			{	
 //
@@ -1316,13 +1346,13 @@ cout << "rootArea = " << rootArea << endl;
 //Stages: Early vegetative growth: to day 157; late vegetative growth to 200; 
 //  	  early reproductive to day 225
 //
-				if (treesParams.xylemScalar == 0.99 || (treesParams.usePhenology == false && i % 48 == 47 && soilpsiavg[1] > -0.3))
+				if (treesParams.xylemScalar == 0.99 || (treesParams.useLeafModule == false && treesParams.usePhenology == false && i % 48 == 47 && soilpsiavg[1] > -0.3))
 				{
 					treesParams.forceRefilling = true;
 					treesParams.updatedHydraulics = true;
 					//if (yday < 200)
 					//if (yday < 252)
-					if (yday < 182)
+					if (yday < treesParams.dayToStopMaizeRefilling)
 					{
 						treesParams.allowLeafRefilling = true;
 					}
@@ -1353,7 +1383,7 @@ cout << "rootArea = " << rootArea << endl;
 //recompute the maximum saturated hydraulic conductance as the root area and leaf area changes
 //for perennials call this once every 10 days; for annuals call every other day
 					if ( (treesParams.usePhenology == true && treesParams.forceRefilling == true) || 
-						(treesParams.usePhenology == true && treesParams.leafLifeSpan == 1.0 && i % 480 == 0) ||
+						(treesParams.usePhenology == true && treesParams.leafLifeSpan >= 1.0 && i % 480 == 0) ||
 						(treesParams.usePhenology == false) )
 					{
 						for (mm=1; mm <=(treesParams.rmodules+treesParams.smodules+1); mm++)
@@ -1440,7 +1470,7 @@ cout << "rootArea = " << rootArea << endl;
                         {
                                 fluxout << simOut.rhizFlux[j] << '\t';
                         }
-			fluxout << simOut.Gs << '\t'<< treesParams.lai << '\t' << treesParams.live_lai << '\t' << simOut.rmaint << '\t' << simOut.rgrowth << '\t';
+			fluxout << simOut.Gs << '\t'<< treesParams.lai << '\t' << treesParams.SLA << '\t' << treesParams.live_lai << '\t' << simOut.rmaint << '\t' << simOut.rgrowth << '\t';
 			//fluxout  << simOut.nsc << '\t' << simOut.waterStress << '\t' << state.get_val_at(LITTER) << '\t';
 			fluxout << bgc.getFruitCarbon() << '\t';
 			fluxout  << bgc.getLeafNSC() << '\t' << bgc.getStemNSC() << '\t' << bgc.getRootNSC() << '\t' << bgc.getChloroplastStarch() << '\t' << bgc.getChloroplastSugar() << '\t' << simOut.waterStress << '\t' << state.get_val_at(LITTER) << '\t';
@@ -1789,6 +1819,11 @@ void simulator(Data_Store& in_data,
         treesParams.kl = current_params[i].get_value(); i++;  //
         treesParams.kh = current_params[i].get_value(); i++;  //
 
+	treesParams.fr_minCN = current_params[i].get_value(); i++;  //
+        treesParams.fr_maxCN = current_params[i].get_value(); i++;  //
+        treesParams.leaf_minCN = current_params[i].get_value(); i++;  //
+        treesParams.leaf_maxCN = current_params[i].get_value(); i++;  //
+
         treesParams.Cbelowground = current_params[i].get_value(); i++;  //
         treesParams.Clitter_frac = current_params[i].get_value(); i++;  //
         treesParams.Croot_frac = current_params[i].get_value(); i++;  //
@@ -1799,6 +1834,7 @@ void simulator(Data_Store& in_data,
         treesParams.Croot_coarse_frac = current_params[i].get_value(); i++;//
         treesParams.Croot_coarse = treesParams.Croot_coarse_frac * treesParams.Cbelowground;
         treesParams.Csoil = (1.0-treesParams.Clitter_frac - treesParams.Croot_frac - treesParams.Croot_coarse_frac) * treesParams.Cbelowground;
+	treesParams.interception_per_leafArea = current_params[i].get_value(); i++;//
         treesParams.litter_capacity = current_params[i].get_value(); i++;//
 	treesParams.litter_capacity_init = treesParams.litter_capacity;
         treesParams.theta_deep0 = current_params[i].get_value(); i++;//
@@ -1806,6 +1842,7 @@ void simulator(Data_Store& in_data,
         treesParams.theta_shallow0 = current_params[i].get_value(); i++;//
         treesParams.litter_store0 = current_params[i].get_value(); i++;//
         treesParams.SLA = current_params[i].get_value(); i++;  //
+	treesParams.SLA_instant = treesParams.SLA;
         treesParams.SRL1 = current_params[i].get_value(); i++;  //
         treesParams.minRootDiam = current_params[i].get_value(); i++;  //
         treesParams.maxRootDiam = current_params[i].get_value(); i++;  //
@@ -1829,6 +1866,13 @@ void simulator(Data_Store& in_data,
         treesParams.max_iterations = (int) current_params[i].get_value(); i++;
 //Conductance to use for Darcy's Law, 1=WholePlant,2=AxialComponents, 3=Shoot,4=AxialRoot, 5=LaterialRoot
         treesParams.microbiomeScalar = current_params[i].get_value(); i++;
+// MCH 07082020
+	treesParams.microbialrainrate = current_params[i].get_value(); i++; //
+//MCH 23092020
+        treesParams.raininAmmonium = current_params[i].get_value(); i++; //
+        treesParams.raininNitrate = current_params[i].get_value(); i++; //
+        treesParams.raininMineralN = current_params[i].get_value(); i++; //
+        treesParams.raininLabileC = current_params[i].get_value(); i++; //
 //Parameters for snowpack accumulation and melt
         treesParams.snowpack_water_equivalent = current_params[i].get_value(); i++; //
         treesParams.snowpack_E_deficit_max = current_params[i].get_value(); i++; //
@@ -1836,8 +1880,8 @@ void simulator(Data_Store& in_data,
 //Run with full hydraulics or not (1 = yes, 0 = no)
         treesParams.useHydraulics = (bool) current_params[i].get_value(); i++; //
         treesParams.useInputStress = (bool) current_params[i].get_value(); i++; //
-        treesParams.useRefilling = (bool) current_params[i].get_value(); i++; //
-        treesParams.forceRefilling = (bool) current_params[i].get_value(); i++; //
+        treesParams.useInputWaterTable = (bool) current_params[i].get_value(); i++; //
+        treesParams.dayToStopMaizeRefilling = current_params[i].get_value(); i++; //
 //Leaf growth module parameters
         treesParams.useLeafModule = (bool) current_params[i].get_value(); i++; //
         treesParams.leafAreaMax = current_params[i].get_value(); i++; //

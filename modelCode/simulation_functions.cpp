@@ -450,22 +450,23 @@ struct sim_out simulation_functions(
                     		for (int k = (bgc.Lf_idx[0]-1); k >= 0; k-- )
                     		{
 // updates any emerged leaf (Lf_idx indexs leaf number which starts at 1)
+// co-opted code to get thetaRoot for updateLeaf function
+                                	double thetaRootTmp = 0.0; 
+                                	rmodules = treesParams.rmodules;
+                                	for (i = 0; i < rmodules; i++)
+                                	{
+                                    		thetaRootTmp += thetaSoil[i]*treesParams.ar[i+3];
+                                	}  
                                 
-                                double thetaRootTmp = 0.0; // co-opted code to get thetaRoot for updateLeaf function
-                                rmodules = treesParams.rmodules;
-                                for (i = 0; i < rmodules; i++)
-                                {
-                                    thetaRootTmp += thetaSoil[i]*treesParams.ar[i+3];
-                                }  
-                                
-                        		bgc.updateLeaf(k, delta_thermTime, treesParams, 
+                        			bgc.updateLeaf(k, delta_thermTime, treesParams, 
 							treesParams.pot_size, RL,
-							N_neg_fract, N_neg_demand, N_pos_demand, bgc.Karray, bgc.Narray, bgc.rarray, bgc.Lf_idx[0]-1, thetaRootTmp);
+							N_neg_fract, N_neg_demand, N_pos_demand, 
+							bgc.Karray, bgc.Narray, bgc.rarray, 
+							bgc.Lf_idx[0]-1, thetaRootTmp);
 
                         		//cout << "leaf " << k << " has potA of " << bgc.getSingleLeafAreaPotential(k) << endl;
                     		}
                 	}
-
 		}
 
 // update plant-level variables for this ts
@@ -475,8 +476,9 @@ struct sim_out simulation_functions(
 // plant-level SLA
             	if (bgc.Lf_idx[0] > 0 && bgc.getSingleLeafArea(0)> 0)
             	{
-                	treesParams.SLA = bgc.calcPlantSLA(bgc.Lf_idx[0], treesParams);
-//                	cout << "plant level SLA at this ts is " << bgc.calcPlantSLA(bgc.Lf_idx[0], treesParams) << "\n";
+                	//treesParams.SLA = bgc.calcPlantSLA(bgc.Lf_idx[0], treesParams);
+                	//cout << "plant level SLA at this ts is " << bgc.calcPlantSLA(bgc.Lf_idx[0], treesParams) << "\n";
+                	//cout << "plant level SLA at this ts is " << treesParams.SLA << "\n";
             	}
 
 // plant-level leaf biomass C
@@ -520,20 +522,22 @@ struct sim_out simulation_functions(
 //Force water table to just below the rooting depth
 //This overrides the input Zw in the meteorological file
 //  -- comment this out if your input Zw is reliable (e.g. from observations, groundwater model, etc)
-//	Zw = Droot-0.01;
+	if (treesParams.useInputWaterTable == false)
+	{
+//		Zw = Droot-0.01;
 //Add capillary fringe to water table depth to make Zw the top of the capillary fringe
-	//Zw = Droot+capFringe-0.1*rootDepth[rmodules-1];
-	//Zw = Droot+0.01+capFringe;
-//	Zw = Droot;
+		Zw = Droot+capFringe-0.1*rootDepth[rmodules-1];
+//		Zw = Droot+0.01+capFringe;
+//		Zw = Droot;
+	}
 
 //********************************************************************************************
 //INTERCEPTION - calculate how much water is intercepted by the canopy
 // DSM May 2010
 //********************************************************************************************
-	canopy_store_max = lai*0.0002;
+	canopy_store_max = lai*treesParams.interception_per_leafArea;
 	eff_precip = compute_effective_precipitation(state, treesParams, canopy_store_max, precip, t_ref);
 
-//
 //DRAINAGE: precipitation --> litter layer --> shallow soil layer --> deep soil layer
 //
 	infiltration(eff_precip, state, rootDepth, thetaSoil, bypassFlow, rmodules,
@@ -934,6 +938,7 @@ struct sim_out simulation_functions(
 //
 
 //This if{} is suspect. Negative KL can occur at night when net flow 
+			state.set_val_at(leafpsi, LPSI);
 			if (HydraulicModelFailCond == 0)
 			{
 				if (isnan(Kl))
@@ -1107,7 +1112,7 @@ struct sim_out simulation_functions(
 //
 //Allow for fixed (biologically or otherwise made available in stored) N sources
 //If this is set to 0 then the dependency of photosynthesis on N is entirely a function of its allocation to leaf biomass
-//    if set to 1, then photosynthetic dependency on N is based on treesParams.Nleaf (input parameter)
+//    if set to 1, then photosynthetic dependency on N is based on bgc.getLeafBiomassN()
 		if (N_fixed_proportion < 0.0)
 		{
 			N_fixed_proportion = 0.0;
@@ -1118,24 +1123,30 @@ struct sim_out simulation_functions(
 		}
 
 		N_avail_rate_plant = bgc.plantNstatus[0];
+
 //proportion of Nleaf determined by its biomass concentration
 //bgc.getLeafBiomassN() is converted from kg ha-1 to kg m-2 ground area
 //divide by lai (m2 leaf area m-2 ground area) to get kg m-2 leaf area
-		//Nleaf = (1.0-N_fixed_proportion) * 0.0001 * bgc.getLeafBiomassN()/min(1.0,max(0.1,treesParams.lai));
-		Nleaf = (1.0-N_fixed_proportion) * 0.0001 * bgc.getLeafBiomassN()/max(0.1,treesParams.lai);
+		double leafBiomassN, leafBiomassC, leafArea;;
+		leafBiomassN = 0.0001 * bgc.getLeafBiomassN();
+		leafBiomassC = 0.0001 * bgc.getLeafBiomassCarbon();
+		leafArea = leafBiomassC * treesParams.SLA_min;
+
+		Nleaf = (1.0-N_fixed_proportion) * leafBiomassN/max(0.000000001,leafArea);
 		Nleaf += N_fixed_proportion*treesParams.Nleaf;
-		if (treesParams.useLeafModule == 1)
-		{
-			Nleaf *= treesParams.pot_size / treesParams.projectedArea_init;
-			Nleaf *= treesParams.SLA_max / treesParams.SLA;
-		}
+//cout << leafArea << '\t' << leafBiomassN << '\t' << leafBiomassN/max(0.000000001,leafArea) << '\t' << Nleaf*Nrubisco*fnr*treesParams.act25*1.0e6 / 60.0<< endl;
 		in.lnc = Nleaf;
 //shift more available N to rubisco when N is limiting
 		in.flnr = Nrubisco;
 
-//adjust quantum yield based on N availability
-		adj_phiJ_sun = phiJ_sun*in.lnc/treesParams.Nleaf;
-		adj_phiJ_shd = phiJ_shd*in.lnc/treesParams.Nleaf;
+//adjust quantum yield based on N status
+		//adj_phiJ_sun = phiJ_sun*in.lnc/treesParams.Nleaf;
+		//adj_phiJ_shd = phiJ_shd*in.lnc/treesParams.Nleaf;
+//adjust quantum yield based on water stress
+		adj_phiJ_sun = phiJ_sun*min(1.0, water_stress);
+		adj_phiJ_shd = phiJ_shd*min(1.0, water_stress);
+adj_phiJ_sun = phiJ_sun;
+adj_phiJ_shd = phiJ_shd;
 
 //reset lnc to Nleaf, if you think Vcmax is unaffected by environmental conditions
 	//	in.lnc = Nleaf;
@@ -1171,7 +1182,7 @@ struct sim_out simulation_functions(
 //maximum do novo nitrogen supply to the chloroplast, umol N m-2 30 min-1
 				Nmax = min(treesParams.Nmax * 1800.0, Navail) / 30.0;
 				gc0 = gvc_sun / lai_sun / 1.6; //molar conversion from H2O to CO2
-				bgc.coupledA3_gc(treesParams, in.co2, Pa, in.irad, phiJ_sun, in.t, gc0, Nmax, gc, A_sun, Ci, Cc, NGsun, NSsun);
+				bgc.coupledA3_gc(treesParams, in.co2, Pa, in.irad, adj_phiJ_sun, in.t, gc0, Nmax, gc, A_sun, Ci, Cc, NGsun, NSsun);
 				gvc_sun = 1.6 * gc; //molar conversion from CO2 to H2O
 				out.Ci = Ci;
 				out.Rd = 0.0;
@@ -1243,7 +1254,7 @@ struct sim_out simulation_functions(
 //maximum do novo nitrogen supply to the chloroplast, umol N m-2 30 min-1
 				Nmax = min(treesParams.Nmax * 1800.0, Navail) / 30.0;
 				gc0 = gvc_shd / lai_shd / 1.6; //molar conversion from H2O to CO2
-				bgc.coupledA3_gc(treesParams, in.co2, Pa, in.irad, phiJ_shd, in.t, gc0, Nmax, gc, A_shd, Ci, Cc, NGshd, NSshd);
+				bgc.coupledA3_gc(treesParams, in.co2, Pa, in.irad, adj_phiJ_shd, in.t, gc0, Nmax, gc, A_shd, Ci, Cc, NGshd, NSshd);
 				gvc_shd = 1.6 * gc; //molar conversion from CO2 to H2O
 				out.Ci = Ci;
 				out.Rd = 0.0;
@@ -1857,12 +1868,12 @@ struct sim_out simulation_functions(
 		kratio = 1.0;
 	}
 	R_leaf = bgc.leaf_respiration_rate(resp_coef_leaf, resp_coefficient, simOut.T_sun, 
-						lai_sun, SLA)/48.0*max(0.1, kratio);
+						lai_sun, SLA)/48.0*max(1.0, kratio);
 	R_leaf += bgc.leaf_respiration_rate(resp_coef_leaf, resp_coefficient, simOut.T_shd, 
-						lai_shd, SLA)/48.0*max(0.1, kratio);
+						lai_shd, SLA)/48.0*max(1.0, kratio);
 
         R_stem = bgc.stem_respiration_rate(resp_coef_stem, resp_coefficient, t_canopy, 
-						bgc.getLiveStemCarbon())/48.0*max(0.1, kratio);
+						bgc.getLiveStemCarbon())/48.0*max(1.0, kratio);
 
 
 //take leaf maintenance respiration from photosynthate, then chloroplast starch, 
@@ -1873,6 +1884,7 @@ struct sim_out simulation_functions(
 //   in the range of 0.5 to 0.8 mol CO2 (mol sucrose)-1
 //   using 0.7 mol CO2 (mol sucrose)-1 = 0.7/12 = 0.06 g C respired (g NSC loading)-1
 	CostLoading = 0.06*R_leaf;
+
 	if (A_tot_kg > R_leaf)
 	{
 		A_tot_kg -= R_leaf;
@@ -1963,12 +1975,12 @@ struct sim_out simulation_functions(
 	}
 	else
 	{
-		nsc_base =  (0.25*treesParams.leafNSCscalar*bgc.getLeafBiomassCarbon() +
-			0.25*treesParams.leafNSCscalar*bgc.getRootCarbon() + 
-			0.08*treesParams.leafNSCscalar*bgc.getLiveStemCarbon());
+		nsc_base =  (treesParams.leafNSCscalar*bgc.getLeafBiomassCarbon() +
+			treesParams.leafNSCscalar*bgc.getRootCarbon() + 
+			0.4*treesParams.leafNSCscalar*bgc.getLiveStemCarbon());
 	}
 	nsc = bgc.getLeafNSC()+bgc.getStemNSC()+bgc.getRootNSC();
-        nscRatio = nsc/nsc_base;
+        nscRatio = nsc/(nsc_base+0.001);
 	if (treesParams.useLeafModule==1)
 	{
 		nscRatio = 1.0;
@@ -2041,8 +2053,24 @@ struct sim_out simulation_functions(
 //add NSC use for defense; ramp up with BB attack if NSC can be utilized
 //assumes about 5% NSC used over a 10-day period under non-invasion conditions
 //this is poorly specified and so rdefense is currently set to zero
-
+	if (treesParams.useHydraulics == true)
+	{
+		kratio = k_p_e.latK[1]/(ksat[1][1]+0.00000001);
+	}
+	else
+	{
+		kratio = water_stress;
+	}
         rdefense = 0.0;
+	if (kratio > 0.5)
+	{
+		rdefense = 0.05/kratio * rmaint;
+	}
+	else
+	{
+		rdefense = 0.05*2.0*kratio * rmaint;
+	}
+	bgc.putLeafNSC(bgc.getLeafNSC()-rdefense);
 /*
         if (t_root > 0.0 && nsc > 0.0)
 	{
@@ -2065,7 +2093,11 @@ struct sim_out simulation_functions(
 	bgc.putChloroplastSugar(bgc.getChloroplastSugar()-0.5*psn-CostLoading);
 	psn -= 0.5*psn-CostLoading;
 
+/*
+cout << bgc.getChloroplastStarch() << '\t';
 	bgc.putChloroplastStarch(bgc.getChloroplastStarch()-rgrowth/nscRatio);
+cout << bgc.getChloroplastStarch() << endl;
+*/
 
 	if ((hour+min/100.0) >= (12.0-0.5*daylen) && (hour+min/100.0) < (12.5-0.5*daylen))
         {
