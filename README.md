@@ -1,6 +1,6 @@
 # Maize-coupled-hydraulics-and-carbon
 
-TREES 3.1.4 code
+TREES 3.1.4r code
 Input files for maize nested association lines and simulated hybrids
 
 To compilte: make trees3
